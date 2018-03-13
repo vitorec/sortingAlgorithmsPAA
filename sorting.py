@@ -67,8 +67,29 @@ def tokuda_gaps(n):
 	return gaps
 
 
-def quicksort(list, n):
-	pass
+def quicksort(list, left, right):
+	if left < right:
+		p = partition(list, left, right)
+		quicksort(list, left, p - 1)
+		quicksort(list, p + 1, right)
+
+
+def partition(list, left, right):
+	pivot = list[right].key
+	i = left - 1
+	for j in range(left, right):
+		if list[j].key < pivot:
+			i += 1
+			swap(list, i, j)
+	if list[right].key < list[i + 1].key:
+		swap(list, i + 1, right)
+	return i + 1
+
+
+def swap(list, i, j):
+	aux = list[i]
+	list[i] = list[j]
+	list[j] = aux
 
 
 def heapsort(list):
