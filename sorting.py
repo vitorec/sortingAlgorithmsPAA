@@ -11,6 +11,7 @@ sys.setrecursionlimit(1000000)
 
 def insertion(list):
 	global comparisons, swaps
+	comparisons, swaps = 0, 0
 	n = len(list)
 	for i in range(1, n):
 		r = list[i]
@@ -28,6 +29,7 @@ def insertion(list):
 
 def shellsort(list):
 	global comparisons, swaps
+	comparisons, swaps = 0, 0
 	h = 1
 	n = len(list)
 	for h in range(n):
@@ -59,8 +61,11 @@ def tokuda_gaps(n):
 
 
 def better_shellsort(list):
+	global comparisons, swaps
+	comparisons, swaps = 0, 0
 	comparisons, swaps = shellsort_helper(list, gaps_function=tokuda_gaps)
 	return comparisons, swaps
+
 
 def shellsort_helper(list, gaps_function=tokuda_gaps):
 	global comparisons, swaps
@@ -81,16 +86,18 @@ def shellsort_helper(list, gaps_function=tokuda_gaps):
 
 
 def quicksort(list):
-	quick_helper(list, 0, len(list) - 1)
+	global comparisons, swaps
+	comparisons, swaps = 0, 0
+	quicksort_helper(list, 0, len(list) - 1)
 	return comparisons, swaps
 
 
-def quick_helper(list, left, right):
+def quicksort_helper(list, left, right):
 	i, j = partition(list, left, right)
 	if left < j:
-		quick_helper(list, left, j)
+		quicksort_helper(list, left, j)
 	if i < right:
-		quick_helper(list, i, right)
+		quicksort_helper(list, i, right)
 	pass
 
 
