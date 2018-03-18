@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import sorting
 import numpy as np
 from math import ceil
 
@@ -24,12 +25,13 @@ def run_test(method, factory):
 		list = factory.make_list()
 
 		start_time = time.clock()
-		comparisons, swaps = method(list)
+		sorting.comparisons, sorting.swaps = 0, 0
+		method(list)
 		seconds = time.clock() - start_time
 
 		times_list.append(seconds)
-		comparisons_list.append(comparisons)
-		swaps_list.append(swaps)
+		comparisons_list.append(sorting.comparisons)
+		swaps_list.append(sorting.swaps)
 
 	data = {
 		'n': factory.n,
