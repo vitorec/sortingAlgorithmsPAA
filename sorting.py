@@ -122,10 +122,91 @@ def swap(list, i, j):
 	list[j] = aux
 
 
-def heapsort(list):
-	pass
+def merge(a, b):
+    global comparisons, swaps
+    
+    c = []
+    while len(a) > 0 and len(b) > 0:
+        comparisons += 2
+        swaps += 1
+        
+        if a[0] > b[0]:
+            c.append(b[0])
+            b.pop(0)
+        else:
+            c.append(a[0])
+            a.pop(0)
+            
+    comparisons += 1
+    
+    while len(a) > 0:
+        comparisons += 1
+        swaps += 1
+        
+        c.append(a[0])
+        a.pop(0)
+        
+    comparisons += 1
+    while len(b) > 0:
+        comparisons += 1
+        swaps += 1
+        
+        c.append(b[0])
+        b.pop(0)
+        
+    return c
 
 
 def mergesort(list):
-	pass
+    global comparisons, swaps
+    
+    comparisons += 1
+    if len(list) < 2: 
+        return list
+
+    a = list[:int(len(list)/2)]
+    b = list[int(len(list)/2):]
+
+    a = mergesort(a)
+    b = mergesort(b)
+
+    return merge(a,b)
+
+
+def heapify(list, i, n):
+    global comparisons, swaps
+    
+    left = 2 * i + 1
+    right = 2 * i + 2
+    max = i
+
+    if (left < n) and (list[left] > list[i]):
+        comparisons += 1
+        max = left
+
+    if (right < n) and (list[right] > list[max]):
+        comparisons += 1
+        max = right
+
+    if (max != i):
+        swaps += 1
+        swap(list, i, max)
+        heapify(list, max, n)
+
+
+def heapsort(list):
+    global comparisons, swaps
+    
+    n = len(list)
+    
+    for i in range(n, -1, -1):
+        heapify(list, i, n)
+        
+    for i in range(n - 1, 0, -1):
+        swaps += 1
+        
+        swap(list, 0, i)
+        heapify(list, 0, i)
+        
+    return list
 
