@@ -8,32 +8,32 @@ class Factory:
 
 	:param n : The length of the list
 	:type n : int
-	:param mode : {'random', 'reverse'}, optional
+	:param order : {'ascending', 'descending', 'random'}. Default is ascending
+	:type order : str
+	:param mode : {'empty', 'filled'} If 'filled', fills the records with some data. Default is 'empty'.
 	:type mode : str
-	:param filled : If True, fills the records with some data. Default is False. Optional
-	:type filled : bool
 	:param size : The number of lines of the record's data
 	:type size : int
 	"""
 
 	size = 50
 
-	def __init__(self, n, mode=None, filled=False):
+	def __init__(self, n, order='ascending', mode='empty'):
 		self.n = n
+		self.order = order
 		self.mode = mode
-		self.filled = filled
 
 	def make_record(self, key):
 		"""
 		Generates a record to be inserted in the list.
-		If the class param <filled> is True, the record will be filled with some data
+		If the class param <mode> is 'filled', the record will be filled with some data
 
 		:param key : The key of the record
 		:return : A record with the key that can have an amount of data
 		:rtype : Record
 		"""
 		data = None
-		if self.filled:
+		if self.mode == 'filled':
 			data = self.fill_record()
 
 		record = Record(key, data)
@@ -61,9 +61,9 @@ class Factory:
 		for i in range(self.n):
 			register = self.make_record(i + 1)
 			list.append(register)
-		if self.mode == 'random':
+		if self.order == 'random':
 			random.shuffle(list)
-		elif self.mode == 'reverse':
+		elif self.order == 'descending':
 			list.reverse()
 		return list
 

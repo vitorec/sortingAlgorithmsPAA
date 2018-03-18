@@ -1,13 +1,21 @@
+"""
+This module implements the most well-known sort algorithms
+"""
 
+import sys
 from math import ceil
+
+comparisons, swaps = 0, 0
+sys.setrecursionlimit(1000000)
 
 
 def insertion(list):
-	comparisons, swaps = 0, 0
+	global comparisons, swaps
 	n = len(list)
 	for i in range(1, n):
 		r = list[i]
 		j = i - 1
+		comparisons += 1
 		while j >= 0 and list[j].key > r.key:
 			list[j + 1] = list[j]
 			j -= 1
@@ -19,7 +27,7 @@ def insertion(list):
 
 
 def shellsort(list):
-	comparisons, swaps = 0, 0
+	global comparisons, swaps
 	h = 1
 	n = len(list)
 	for h in range(n):
@@ -29,24 +37,7 @@ def shellsort(list):
 		for i in range(h, n):
 			r = list[i]
 			j = i
-			while list[j - h].key > r.key and j >= h:
-				list[j] = list[j - h]
-				j -= h
-				# comparisons += 1
-				# swaps += 1
-			list[j] = r
-			# swaps += 1
-	return comparisons, swaps
-
-
-def better_shellsort(list, gaps_function):
-	comparisons, swaps = 0, 0
-	n = len(list)
-	gaps = gaps_function(n)
-	for h in gaps:
-		for i in range(h, n):
-			r = list[i]
-			j = i
+			comparisons += 1
 			while list[j - h].key > r.key and j >= h:
 				list[j] = list[j - h]
 				j -= h
@@ -67,23 +58,63 @@ def tokuda_gaps(n):
 	return gaps
 
 
-def quicksort(list, left, right):
-	if left < right:
-		p = partition(list, left, right)
-		quicksort(list, left, p - 1)
-		quicksort(list, p + 1, right)
+def better_shellsort(list):
+	comparisons, swaps = shellsort_helper(list, gaps_function=tokuda_gaps)
+	return comparisons, swaps
+
+def shellsort_helper(list, gaps_function=tokuda_gaps):
+	global comparisons, swaps
+	n = len(list)
+	gaps = gaps_function(n)
+	for h in gaps:
+		for i in range(h, n):
+			r = list[i]
+			j = i
+			while list[j - h].key > r.key and j >= h:
+				list[j] = list[j - h]
+				j -= h
+				comparisons += 1
+				swaps += 1
+			list[j] = r
+			swaps += 1
+	return comparisons, swaps
+
+
+def quicksort(list):
+	quick_helper(list, 0, len(list) - 1)
+	return comparisons, swaps
+
+
+def quick_helper(list, left, right):
+	i, j = partition(list, left, right)
+	if left < j:
+		quick_helper(list, left, j)
+	if i < right:
+		quick_helper(list, i, right)
+	pass
 
 
 def partition(list, left, right):
-	pivot = list[right].key
-	i = left - 1
-	for j in range(left, right):
-		if list[j].key < pivot:
+	global comparisons, swaps
+	i, j = left, right
+	pivot = list[(i + j) // 2].key
+	while True:
+		if j <= i:
+			break
+		comparisons += 1
+		while pivot > list[i].key:
 			i += 1
+			comparisons += 1
+		comparisons += 1
+		while pivot < list[j].key:
+			j -= 1
+			comparisons += 1
+		if i <= j:
 			swap(list, i, j)
-	if list[right].key < list[i + 1].key:
-		swap(list, i + 1, right)
-	return i + 1
+			swaps += 1
+			i += 1
+			j -= 1
+	return i, j
 
 
 def swap(list, i, j):
