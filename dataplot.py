@@ -1,7 +1,7 @@
+from collections import defaultdict
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-import numpy as np
-import os
+import pandas as pd
 
 
 class DataPlot:
@@ -9,148 +9,246 @@ class DataPlot:
 	This class generates the charts of results
 	"""
 
-	times = []
+	times = {
+		'empty': [],
+		'filled': []
+	}
+
 	comparisons = []
+
 	swaps = []
+
 	operations = {
-		'comparisons': [],
-		'swaps': []
+		'comparisons': {
+			'empty': [],
+			'filled': []
+		},
+		'swaps': {
+			'empty': [],
+			'filled': []
+		},
 	}
-	labels = ['Insertion', 'Shellsort', 'Shellsort Otimizado', 'Quicksort', 'Heapsort', 'Mergesort']
-	sizes = [25, 500]
-	subtitle_labels = {
-		'empty': 'Tempo de execução para registros pequenos',
-		'filled': 'Tempo de execução para registros grandes'
-	}
+
+	columns = ['N', 'quicksort', 'heapsort', 'mergesort', 'better_shellsort', 'shellsort', 'insertion']
+
+	labels = ['Quicksort', 'Heapsort', 'Mergesort', 'Shellsort Otimizado', 'Shellsort', 'Insertion']
+	# sizes = [25, 500, 10000, 200000, 1000000]
+	# sizes = [25, 500]
+
 	axes_labels = {
-		'ascending': 'Ordem crescente',
-		'descending': 'Ordem decrescente',
-		'random': 'Ordem aleatória'
+		'empty': 'Registros pequenos',
+		'filled': 'Registros grandes'
 	}
+
+	subtitle_labels = {
+		'ascending': 'Tempo de execução para array em ordem crescente',
+		'descending': 'Tempo de execução para array em ordem decrescente',
+		'random': 'Tempo de execução para array em ordem aleatória'
+	}
+
 	y_labels = {
 		'comparisons': 'Número de comparações',
 		'swaps': 'Número de trocas'
 	}
 
-	def __init__(self, order, mode):
+	bar_title_labels = {
+		'ascending': {
+			'comparisons': 'Número de comparações para array em ordem crescente',
+			'swaps': 'Número de trocas para array em ordem crescente'
+		},
+		'descending': {
+			'comparisons': 'Número de comparações para array em ordem decrescente',
+			'swaps': 'Número de trocas para array em ordem decrescente'
+		},
+		'random': {
+			'comparisons': 'Número de comparações para array em ordem aleatória',
+			'swaps': 'Número de trocas para array em ordem aleatória'
+		}
+	}
+
+	def __init__(self, order, mode, sizes):
+		"""
+
+		:param order: {'ascending', 'descending', 'random'}. The order of the data
+		:param mode: {'empty', 'filled'}. The type of the records
+		:param sizes: array. An array of the sizes of N
+		"""
 		self.order = order
 		self.mode = mode
+		self.sizes = sizes
 
-	def read_data(self, data_type='times', type=float):
+	def read_data(self, data_type='times', mode='empty'):
 		"""
 		Read the results data
-		:param data_type: {'times', 'comparisons', 'swaps'}
-		:param type: {int, float}. A numeric primitive type
+		:param data_type: {'times', 'comparisons', 'swaps'}.
+		:param mode: {'empty', 'filled'}. The type of the records
 		:return: array. A two-dimensional array
 		"""
-		f = open("results/" + data_type + "_" + self.order + "_" + self.mode + ".txt", 'r')
+		f = open("results/" + data_type + "_" + self.order + "_" + mode + ".txt", 'r')
 
 		data = []
 		line = f.readline()
 		method = line.split()[0]
 
 		method_data = []
+		if data_type != 'times':
+			method_data = str(self.sizes).strip('[]')
+
 		while line:
 			if method != line.split()[0]:
 				data.append(method_data)
 				method = line.split()[0]
 				method_data = []
-			mean = type(line.split()[2])
+			mean = float(line.split()[2])
 			method_data.append(mean)
 			line = f.readline()
 		data.append(method_data)
 		f.close()
 		return data
 
+	def read_operations(self, data_type='comparisons', mode='empty'):
+		"""
+		Read the results data
+		:param data_type: {'times', 'comparisons', 'swaps'}
+		:param mode: {'empty', 'filled'}. The type of the records
+		:return: array. A two-dimensional array
+		"""
+		f = open("results/" + data_type + "_" + self.order + "_" + mode + ".txt", 'r')
+
+		values = []
+		for line in f:
+			method = line.split()[0]
+			mean = float(line.split()[2])
+			values.append((method, mean))
+		f.close()
+
+		data = defaultdict(list)
+		data['N'] = self.sizes
+		for method, mean in values:
+			data[method].append(mean)
+
+		return data
+
 	def load_data(self):
 		"""
 		Loads all the results data
 		"""
-		self.times = self.read_data('times', float)
-		self.operations['comparisons'] = self.read_data('comparisons', int)
-		self.operations['swaps'] = self.read_data('swaps', int)
+		self.times['empty'] = self.read_data('times', 'empty')
+		self.times['filled'] = self.read_data('times', 'filled')
+		comparisons = {
+			'empty': self.read_operations('comparisons', 'empty'),
+			'filled': self.read_operations('comparisons', 'filled'),
+		}
+		swaps = {
+			'empty': self.read_operations('swaps', 'empty'),
+			'filled': self.read_operations('swaps', 'filled'),
+		}
+		self.operations['comparisons'] = comparisons
+		self.operations['swaps'] = swaps
 
 	def plot_times(self):
-		fig, ax = plt.subplots()
-		plt.figure(figsize=(11, 4.7), dpi=100)
+		"""
+		Plot the line charts of times
+		"""
+
+		fig = plt.figure(figsize=(11, 4.7), dpi=100)
 
 		# Título do gráfico
-		fig.suptitle(self.subtitle_labels[self.mode])
+		fig.suptitle(self.subtitle_labels[self.order])
+
+		fig.subplots_adjust(left=0.06, bottom=0.12, right=0.98, top=0.88, wspace=0.20, hspace=0.40)
 
 		# Configuração dos eixos
-		ax.set_xscale('log')
-		ax.set_yscale('log')
-		ax.set_xlabel('N')
-		ax.set_ylabel('Segundos')
-		ax.set_title(self.axes_labels[self.order], fontsize='small')
-		ax.set_xticks(self.sizes)
-		ax.get_xaxis().set_major_formatter(ticker.ScalarFormatter())
-		ax.grid()
+		ax1 = fig.add_subplot(121)
+		ax2 = fig.add_subplot(122)
+
+		ax1.set_xscale('log')
+		ax1.set_yscale('symlog')
+		ax1.set_xlabel('N')
+		ax1.set_ylabel('Segundos')
+		ax1.set_title(self.axes_labels['empty'], fontsize='medium')
+		ax1.set_xticks(self.sizes)
+		ax1.get_xaxis().set_major_formatter(ticker.ScalarFormatter())
+		ax1.grid(which='major', linestyle=':', linewidth=0.5, color='black', alpha=0.75)
 
 		# Plotagem
-		for t in self.times:
-			ax.plot(self.sizes, t)
+		for t in self.times['empty']:
+			ax1.plot(self.sizes, t, ls='-', lw=1.1, marker='.')
+
+		ax2.set_xscale('log')
+		ax2.set_yscale('symlog')
+		ax2.set_xlabel('N')
+		ax2.set_ylabel('Segundos')
+		ax2.set_title(self.axes_labels['filled'], fontsize='medium')
+		ax2.set_xticks(self.sizes)
+		ax2.get_xaxis().set_major_formatter(ticker.ScalarFormatter())
+		ax2.grid(which='major', linestyle=':', linewidth=0.5, color='black', alpha=0.75)
+
+		# Plotagem
+		for t in self.times['filled']:
+			ax2.plot(self.sizes[:len(self.times['filled'][0])], t, ls='-', lw=1.1, marker='.')
 
 		# Legenda do gráfico
-		ax.legend(self.labels, loc=2, fontsize='small', fancybox=True)
+		ax1.legend(self.labels, loc=2, fontsize='small', fancybox=True)
+		ax2.legend(self.labels, loc=2, fontsize='small', fancybox=True)
 
-		plt.show()
-		# os.chdir()
-
-		# plt.savefig('times_' + self.order + '_' + self.mode + ".png")
-
-	def plot_operations(self, type):
-		men_means, men_std = (20, 35, 30, 35, 27), (2, 3, 4, 1, 2)
-		women_means, women_std = (25, 32, 34, 20, 25), (3, 5, 2, 3, 3)
-		values = self.operations[type]
-
-		ind = np.arange(len(men_means))  # the x locations for the groups
-
-		ind = np.arange(len(values))  # the x locations for the groups
-		print(values)
-		print(ind)
-		width = 0.35  # the width of the bars
-
-		fig, ax = plt.subplots()
-		# rects1 = ax.bar(ind - width / 2, men_means, width, yerr=men_std, label='Men')
-		# rects2 = ax.bar(ind + width / 2, women_means, width, yerr=women_std, label='Women')
-
-		rects = []
-		for v in values:
-			rects.append(ax.bar(ind, v, width))
-		# rects1 = ax.bar(ind - width / 2, men_means, width, yerr=men_std, label='Men')
-		# rects2 = ax.bar(ind + width / 2, women_means, width, yerr=women_std, label='Women')
-		# 			bar(x + i * dimw, y, dimw, bottom=0.001)
-		# ax.bar()
-
-		# Add some text for labels, title and custom x-axis tick labels, etc.
-		ax.set_ylabel('Scores')
-		ax.set_title('Scores by group and gender')
-		ax.set_xticks(ind)
-		# ax.set_yscale('log')
-		# ax.set_xticklabels(('G1', 'G2', 'G3', 'G4', 'G5'))
-		ax.set_xticklabels(self.sizes)
-		ax.legend()
-
-
-		# self.autolabel(ax, rects1, "left")
-		# self.autolabel(ax, rects2, "right")
-
+		plt.savefig('times_' + self.order + ".png")
 		plt.show()
 
-	def autolabel(self, ax, rects, xpos='center'):
+	def plot_operations(self, data_type):
 		"""
-		Attach a text label above each bar in *rects*, displaying its height.
-
-		*xpos* indicates which side to place the text w.r.t. the center of
-		the bar. It can be one of the following {'center', 'right', 'left'}.
+		Plot the bar charts of comparisons and swaps
+		:param data_type: {'comparisons', 'swaps'}. The type of data to plot
 		"""
 
-		xpos = xpos.lower()  # normalize the case of the parameter
-		ha = {'center': 'center', 'right': 'left', 'left': 'right'}
-		offset = {'center': 0.5, 'right': 0.57, 'left': 0.43}
+		fig = plt.figure(figsize=(11, 4.7), dpi=100)
 
-		for rect in rects:
-			height = rect.get_height()
-			ax.text(rect.get_x() + rect.get_width() * offset[xpos], 1.01 * height,
-					'{}'.format(height), ha=ha[xpos], va='bottom', fontsize='x-small')
+		# Título do gráfico
+		fig.suptitle(self.bar_title_labels[self.order][data_type])
+
+		fig.subplots_adjust(left=0.06, bottom=0.12, right=0.98, top=0.88, wspace=0.20, hspace=0.40)
+
+		df1 = pd.DataFrame(self.operations[data_type]['empty'], columns=self.columns)
+		df2 = pd.DataFrame(self.operations[data_type]['filled'], columns=self.columns)
+
+		pos = list(range(len(df1['quicksort'])))
+		width = 0.12
+
+		# Configuração dos eixos
+		ax1 = fig.add_subplot(121)
+		ax2 = fig.add_subplot(122)
+
+		ax1.set_yscale('log')
+		ax1.set_xlabel('N')
+		ax1.set_xticklabels([0] + self.sizes)
+		ax1.set_ylabel(self.y_labels[data_type])
+		ax1.set_title(self.axes_labels['empty'], fontsize='medium')
+		ax1.grid(which='major', linestyle=':', linewidth=0.5, color='black', alpha=0.75)
+
+		# Plotagem
+		for i in range(len(self.columns[1:])):
+			position = [p + width * (i - 2) for p in pos]
+			print(position)
+			ax1.bar(position, df1.iloc[:,i+1], width, alpha=0.75, edgecolor='black', linewidth=0.75, bottom=0)
+			i += 1
+
+		ax2.set_yscale('log')
+		ax2.set_xlabel('N')
+		ax2.set_xticklabels([0] + self.sizes)
+		ax2.set_ylabel(self.y_labels[data_type])
+		ax2.set_title(self.axes_labels['filled'], fontsize='medium')
+		ax2.grid(which='major', linestyle=':', linewidth=0.5, color='black', alpha=0.75)
+
+		# Plotagem
+		for i in range(len(self.columns[1:])):
+			position = [p + width * (i - 2) for p in pos]
+			ax2.bar(position, df2.iloc[:,i+1], width, alpha=0.75, edgecolor='black', linewidth=0.75, bottom=0)
+			i += 1
+
+		# Legenda do gráfico
+		ax1.legend(self.labels, loc=2, fontsize='small', fancybox=True)
+		ax2.legend(self.labels, loc=2, fontsize='small', fancybox=True)
+
+		plt.savefig(data_type + '_' + self.order + ".png")
+		plt.show()
+
