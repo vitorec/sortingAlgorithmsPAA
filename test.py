@@ -7,21 +7,13 @@ from math import ceil
 
 sys.setrecursionlimit(1000000)
 
-method_labels = {
-	'insertion': 'Insertion',
-	'shellsort': 'Shellsort',
-	'better_shellsort': 'Shellsort otimizado',
-	'quicksort': 'Quicksort',
-	'heapsort': 'Heapsort',
-	'mergesort': 'Mergesort',
-}
-
 
 def run_test(method, factory):
 	times_list = []
 	comparisons_list = []
 	swaps_list = []
-	for i in range(10):
+	executions = 10
+	for i in range(executions):
 		list = factory.make_list()
 
 		start_time = time.clock()
