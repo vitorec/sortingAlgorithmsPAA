@@ -58,7 +58,7 @@ def tokuda_gaps(n):
 
 def better_shellsort(list):
 	global comparisons, swaps
-	comparisons, swaps = shellsort_helper(list, gaps_function=tokuda_gaps)
+	shellsort_helper(list, gaps_function=tokuda_gaps)
 
 
 def shellsort_helper(list, gaps_function=tokuda_gaps):
@@ -69,6 +69,7 @@ def shellsort_helper(list, gaps_function=tokuda_gaps):
 		for i in range(h, n):
 			r = list[i]
 			j = i
+			comparisons += 1
 			while list[j - h].key > r.key and j >= h:
 				list[j] = list[j - h]
 				j -= h
@@ -76,7 +77,6 @@ def shellsort_helper(list, gaps_function=tokuda_gaps):
 				swaps += 1
 			list[j] = r
 			swaps += 1
-	return comparisons, swaps
 
 
 def quicksort(list):
@@ -123,90 +123,89 @@ def swap(list, i, j):
 
 
 def merge(a, b):
-    global comparisons, swaps
-    
-    c = []
-    while len(a) > 0 and len(b) > 0:
-        comparisons += 2
-        swaps += 1
-        
-        if a[0] > b[0]:
-            c.append(b[0])
-            b.pop(0)
-        else:
-            c.append(a[0])
-            a.pop(0)
-            
-    comparisons += 1
-    
-    while len(a) > 0:
-        comparisons += 1
-        swaps += 1
-        
-        c.append(a[0])
-        a.pop(0)
-        
-    comparisons += 1
-    while len(b) > 0:
-        comparisons += 1
-        swaps += 1
-        
-        c.append(b[0])
-        b.pop(0)
-        
-    return c
+	global comparisons, swaps
+	c = []
+	while len(a) > 0 and len(b) > 0:
+		comparisons += 2
+		swaps += 1
+
+		if a[0].key > b[0].key:
+			c.append(b[0])
+			b.pop(0)
+		else:
+			c.append(a[0])
+			a.pop(0)
+
+	comparisons += 1
+
+	while len(a) > 0:
+		comparisons += 1
+		swaps += 1
+
+		c.append(a[0])
+		a.pop(0)
+
+	comparisons += 1
+	while len(b) > 0:
+		comparisons += 1
+		swaps += 1
+
+		c.append(b[0])
+		b.pop(0)
+
+	return c
 
 
 def mergesort(list):
-    global comparisons, swaps
-    
-    comparisons += 1
-    if len(list) < 2: 
-        return list
+	global comparisons, swaps
 
-    a = list[:int(len(list)/2)]
-    b = list[int(len(list)/2):]
+	comparisons += 1
+	if len(list) < 2:
+		return list
 
-    a = mergesort(a)
-    b = mergesort(b)
+	a = list[:int(len(list)/2)]
+	b = list[int(len(list)/2):]
 
-    return merge(a,b)
+	a = mergesort(a)
+	b = mergesort(b)
+
+	return merge(a,b)
 
 
 def heapify(list, i, n):
-    global comparisons, swaps
-    
-    left = 2 * i + 1
-    right = 2 * i + 2
-    max = i
+	global comparisons, swaps
 
-    if (left < n) and (list[left] > list[i]):
-        comparisons += 1
-        max = left
+	left = 2 * i + 1
+	right = 2 * i + 2
+	max = i
 
-    if (right < n) and (list[right] > list[max]):
-        comparisons += 1
-        max = right
+	if (left < n) and (list[left].key > list[i].key):
+		comparisons += 1
+		max = left
 
-    if (max != i):
-        swaps += 1
-        swap(list, i, max)
-        heapify(list, max, n)
+	if (right < n) and (list[right].key > list[max].key):
+		comparisons += 1
+		max = right
+
+	if (max != i):
+		swaps += 1
+		swap(list, i, max)
+		heapify(list, max, n)
 
 
 def heapsort(list):
-    global comparisons, swaps
-    
-    n = len(list)
-    
-    for i in range(n, -1, -1):
-        heapify(list, i, n)
-        
-    for i in range(n - 1, 0, -1):
-        swaps += 1
-        
-        swap(list, 0, i)
-        heapify(list, 0, i)
-        
-    return list
+	global comparisons, swaps
+
+	n = len(list)
+
+	for i in range(n, -1, -1):
+		heapify(list, i, n)
+
+	for i in range(n - 1, 0, -1):
+		swaps += 1
+
+		swap(list, 0, i)
+		heapify(list, 0, i)
+
+	return list
 
